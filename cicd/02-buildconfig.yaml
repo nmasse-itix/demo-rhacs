@@ -20,7 +20,7 @@ spec:
     git:
       uri: 'https://github.com/nmasse-itix/demo-rhacs.git'
       ref: main
-    contextDir: log4shell/src
+    contextDir: src
   triggers:
     - type: ImageChange
       imageChange: {}
