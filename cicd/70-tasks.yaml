@@ -1,0 +1,78 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: oc-start-build
+  namespace: vulnerable-cicd
+spec:
+  params:
+    - name: namespace
+      default: default
+      description: The kubernetes namespace
+    - name: componentName
+      default: sample
+      description: The name of the component
+  steps:
+    - name: build-image
+      image: 'quay.io/openshift/origin-cli:latest'
+      command:
+        - /usr/bin/oc
+      args:
+        - -n
+        - $(inputs.params.namespace)
+        - start-build
+        - $(inputs.params.componentName)
+        - --follow
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: oc-deploy
+  namespace: vulnerable-cicd
+spec:
+  params:
+    - name: namespace
+      default: default
+      description: The kubernetes namespace
+    - name: componentName
+      default: sample
+      description: The name of the component
+  steps:
+    - name: oc-deploy
+      image: quay.io/openshift/origin-cli:latest
+      command: 
+        - "/usr/bin/oc"
+      args:
+        - delete 
+        - pods 
+        - -n
+        - $(inputs.params.namespace)
+        - -l
+        - deployment=$(inputs.params.componentName)
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: oc-annotate
+  namespace: vulnerable-cicd
+spec:
+  params:
+    - name: namespace
+      default: default
+      description: The kubernetes namespace
+    - name: componentName
+      default: sample
+      description: The name of the component
+    - name: annotation
+      description: The annotation (key=value)
+  steps:
+    - name: oc-annotate
+      image: quay.io/openshift/origin-cli:latest
+      command: 
+        - "/usr/bin/oc"
+      args:
+        - annotate 
+        - -n
+        - $(inputs.params.namespace)
+        - deploy 
+        - $(inputs.params.componentName)
+        - $(inputs.params.annotation)

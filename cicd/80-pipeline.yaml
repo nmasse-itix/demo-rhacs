@@ -1,0 +1,37 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: vulnerable-log4j
+  namespace: vulnerable-cicd
+spec:
+  tasks:
+  - name: build-image
+    taskRef:
+      name: oc-start-build
+    params:
+    - name: componentName
+      value: vulnerable-log4j
+    - name: namespace
+      value: vulnerable-cicd
+  - name: deploy
+    taskRef:
+      name: oc-deploy
+    runAfter:
+      - build-image
+    params:
+    - name: componentName
+      value: settlement-app
+    - name: namespace
+      value: vulnerable-log4j
+  # - name: remediate
+  #   taskRef:
+  #     name: oc-annotate
+  #   runAfter:
+  #     - deploy
+  #   params:
+  #   - name: componentName
+  #     value: settlement-app
+  #   - name: namespace
+  #     value: vulnerable-log4j
+  #   - name: annotation
+  #     value: cve.log4shell.remediate=true
