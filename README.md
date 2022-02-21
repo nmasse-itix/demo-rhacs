@@ -56,11 +56,11 @@ On your OpenShift cluster(s):
 * Click **New integration**.
 * Fill-in the creation form with:
 
- * **Integration Name**: `Jira`
- * **Username**: your Jira username
- * **Password**: your Jira API Token
- * **Issue Type**: `Task`
- * **Default Project**: your Jira project Key (all upper case)
+  * **Integration Name**: `Jira`
+  * **Username**: your Jira username
+  * **Password**: your Jira API Token
+  * **Issue Type**: `Task`
+  * **Default Project**: your Jira project Key (all upper case)
 
 * Click **Test** and **Save**
 
