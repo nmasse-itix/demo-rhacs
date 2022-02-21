@@ -40,6 +40,13 @@ On your OpenShift cluster(s):
 * Red Hat ACS
 * OpenShift Pipelines
 
+Create two namespaces for the demo.
+
+```sh
+oc new-project vulnerable-cicd
+oc new-project vulnerable-log4j
+```
+
 ### 1. Jira
 
 * Create a Jira trial account at: https://www.atlassian.com/fr/try/cloud/signup?bundle=jira-software&edition=free
@@ -123,11 +130,7 @@ Add an enforcement exception for the `Fixable Severity at least important` polic
 * In the excluded image, add `<REGISTRY>/vulnerable-cicd/vulnerable-log4j` (you will have to select the last option of the list: `Create ...`)
 * Save the policy
 
-### 4. Deploy the vulnerable app
-
-```sh
-oc kustomize deployment | oc apply -f - 
-```
+### 4. Prepare for deployment
 
 Give access to the `vulnerable-cicd` images from the `vulnerable-log4j` namespace.
 
@@ -153,6 +156,12 @@ From your workstation, verify the connection to the registry:
 REGISTRY=$(oc get route -n openshift-image-registry image-registry -o jsonpath={.spec.host})
 REGISTRY_TOKEN="$(oc get secrets -n vulnerable-cicd -o json | jq -r '.items[] | select(.metadata.annotations["kubernetes.io/service-account.name"]=="default" and .type=="kubernetes.io/dockercfg") | .data[".dockercfg"]' | base64 -d | jq -r --arg registry "$REGISTRY" '.["image-registry.openshift-image-registry.svc:5000"].password')"
 podman login "$REGISTRY" --username sa --password "$REGISTRY_TOKEN"
+```
+
+Deploy the vulnerable app.
+
+```sh
+oc kustomize deployment | oc apply -f -
 ```
 
 ## Demo scenario
@@ -215,7 +224,17 @@ Restart the CI/CD pipeline.
 
 ## Reset the demo
 
-* In central, delete the **Log4Shell** policy
+In central, delete the **Log4Shell** policy
+
+Edit **src/pom.xml** and change `<log4j.version>2.17.1</log4j.version>` to `<log4j.version>2.14.0</log4j.version>`.
+
+```sh
+git add src/pom.xml
+git commit -m 'reset the demo'
+git push
+```
+
+Cleanup
 
 ```sh
 oc delete -f deployment
