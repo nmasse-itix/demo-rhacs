@@ -1,7 +1,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: deployment-can-pull-vulnerable-log4j
+  name: vulnerable-log4j-puller
   namespace: vulnerable-cicd
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -11,3 +11,6 @@ subjects:
 - kind: ServiceAccount
   name: default
   namespace: vulnerable-log4j
+- kind: ServiceAccount
+  name: pipeline
+  namespace: vulnerable-cicd

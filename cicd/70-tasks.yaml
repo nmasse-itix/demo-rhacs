@@ -52,27 +52,41 @@ spec:
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: oc-annotate
-  namespace: vulnerable-cicd
+  name: roxctl-image-check
 spec:
   params:
-    - name: namespace
-      default: default
-      description: The kubernetes namespace
-    - name: componentName
-      default: sample
-      description: The name of the component
-    - name: annotation
-      description: The annotation (key=value)
+    - description: >-
+        Secret containing the StackRox API token with CI permissions and the
+        address:port tuple for StackRox Central (example: rox.stackrox.io:443)
+      name: roxctlSecret
+      type: string
+    - description: 'Full name of image to scan (example -- gcr.io/rox/sample:5.0-rc1)'
+      name: image
+      type: string
+  results:
+    - description: Output of `roxctl image check`
+      name: check_output
   steps:
-    - name: oc-annotate
-      image: quay.io/openshift/origin-cli:latest
-      command: 
-        - "/usr/bin/oc"
-      args:
-        - annotate 
-        - -n
-        - $(inputs.params.namespace)
-        - deploy 
-        - $(inputs.params.componentName)
-        - $(inputs.params.annotation)
+    - env:
+        - name: ROX_API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: rox_api_token
+              name: $(params.roxctlSecret)
+        - name: ROX_CENTRAL_ENDPOINT
+          valueFrom:
+            secretKeyRef:
+              key: rox_central_endpoint
+              name: $(params.roxctlSecret)
+      image: quay.io/skopeo/stable:v1.5.2
+      name: roxctl-image-check
+      resources: {}
+      script: |
+        #!/bin/bash
+        set -Eeuo pipefail
+        TOKEN=`cat /var/run/secrets/kubernetes.io/serviceaccount/token`
+        DIGEST=`skopeo inspect "docker://$(params.image)" --format '{{.Digest}}' --creds token:$TOKEN`
+        NAME=`skopeo inspect "docker://$(params.image)" --format '{{.Name}}' --creds token:$TOKEN`
+        curl -s -k -L -H "Authorization: Bearer $ROX_API_TOKEN" "https://$ROX_CENTRAL_ENDPOINT/api/cli/download/roxctl-linux" --output /tmp/roxctl  > /dev/null
+        chmod +x /tmp/roxctl
+        /tmp/roxctl image check --insecure-skip-tls-verify -e "$ROX_CENTRAL_ENDPOINT" --image "$NAME@$DIGEST"

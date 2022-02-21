@@ -64,18 +64,43 @@ On your OpenShift cluster(s):
 
 * Click **Test** and **Save**
 
-### 2. Deploy the CI/CD pipeline
-
-```sh
-oc apply -f cicd
-```
-
-### 3. Expose the registry
+### 2. Expose the registry
 
 Expose the OpenShift registry.
 
 ```sh
 oc create route reencrypt image-registry --service=image-registry -n openshift-image-registry
+REGISTRY=$(oc get route -n openshift-image-registry image-registry -o jsonpath={.spec.host})
+```
+
+Set the registry hostname where required.
+
+```sh
+sed -i.bak "s/__REGISTRY__/$REGISTRY/" remediation/Dockerfile deployment/kustomization.yaml cicd/80-pipeline.yaml
+```
+
+### 3. Deploy the CI/CD pipeline
+
+Deploy the CI/CD pipeline.
+
+```sh
+oc apply -f cicd
+```
+
+Open the Central and:
+
+* Drill down to **Platform configuration** > **Integration**.
+* Select **API Token**.
+* Click **Generate token**.
+* Fill-in the **Token name** with **Tekton**.
+* Select the **Role** `Continuous Integration`.
+* Click **Generate**.
+* Write down the generated token.
+
+Create a Kubernetes secret with this token:
+
+```sh
+oc create secret generic central-apitoken -n vulnerable-cicd --from-literal=rox_api_token=<TOKEN> --from-literal=rox_central_endpoint=central-stackrox.apps.$CLUSTER_DOMAIN_NAME:443
 ```
 
 Get the registry hostname and default token.
@@ -90,11 +115,13 @@ oc serviceaccounts get-token -n vulnerable-cicd default
 
 Create the Docker Registry integration in Central with the above information.
 
-Set the registry hostname where required.
+Add an enforcement exception for the `Fixable Severity at least important` policy:
 
-```sh
-sed -i.bak "s/__REGISTRY__/$REGISTRY/" remediation/Dockerfile deployment/kustomization.yaml
-```
+* Drill down to **Platform configuration** > **System policy**
+* Select the policy `Fixable Severity at least important`
+* Click **Edit**
+* In the excluded image, add `<REGISTRY>/vulnerable-cicd/vulnerable-log4j` (you will have to select the last option of the list: `Create ...`)
+* Save the policy
 
 ### 4. Deploy the vulnerable app
 
@@ -105,7 +132,6 @@ oc kustomize deployment | oc apply -f -
 Give access to the `vulnerable-cicd` images from the `vulnerable-log4j` namespace.
 
 ```sh
-REGISTRY=$(oc get route -n openshift-image-registry image-registry -o jsonpath={.spec.host})
 oc get secrets -n vulnerable-cicd -o json | jq -r '.items[] | select(.metadata.annotations["kubernetes.io/service-account.name"]=="default" and .type=="kubernetes.io/dockercfg") | .data[".dockercfg"]' | base64 -d | jq --arg registry "$REGISTRY" '.["image-registry.openshift-image-registry.svc:5000"] as $conf | { ($registry) : $conf}' > dockercfg
 oc apply -n vulnerable-log4j -f - <<EOF
 kind: Secret
