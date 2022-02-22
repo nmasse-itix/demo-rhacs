@@ -224,6 +224,8 @@ Restart the CI/CD pipeline.
 
 ## Reset the demo
 
+In Jira, mark all tickets as closed.
+
 In central, delete the **Log4Shell** policy
 
 Edit **src/pom.xml** and change `<log4j.version>2.17.1</log4j.version>` to `<log4j.version>2.14.0</log4j.version>`.
@@ -237,8 +239,8 @@ git push
 Cleanup
 
 ```sh
-oc delete -f deployment
-oc start-build vulnerable-log4 -n vulnerable-cicd
+oc kustomize deployment | oc delete -f -
+oc start-build vulnerable-log4j -n vulnerable-cicd
 ```
 
 ## Exploit

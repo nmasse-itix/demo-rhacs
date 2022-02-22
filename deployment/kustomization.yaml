@@ -1,5 +1,4 @@
 resources:
-- 00-namespace.yaml
 - 10-deploy.yaml
 - 20-svc.yaml
 - 30-route.yaml
