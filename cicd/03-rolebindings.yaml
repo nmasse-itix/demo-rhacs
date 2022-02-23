@@ -14,3 +14,6 @@ subjects:
 - kind: ServiceAccount
   name: pipeline
   namespace: vulnerable-cicd
+- kind: ServiceAccount
+  name: default
+  namespace: exploitkit-log4j
