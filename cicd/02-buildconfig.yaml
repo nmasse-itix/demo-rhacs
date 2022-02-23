@@ -49,7 +49,7 @@ spec:
     git:
       uri: 'https://github.com/nmasse-itix/demo-rhacs.git'
       ref: main
-    contextDir: exploit
+    contextDir: exploit/image
   triggers:
     - type: ImageChange
       imageChange: {}

@@ -40,11 +40,12 @@ On your OpenShift cluster(s):
 * Red Hat ACS
 * OpenShift Pipelines
 
-Create two namespaces for the demo.
+Create three namespaces for the demo.
 
 ```sh
 oc new-project vulnerable-cicd
 oc new-project vulnerable-log4j
+oc new-project exploitkit-log4j
 ```
 
 ### 1. Jira
@@ -240,6 +241,7 @@ Cleanup
 
 ```sh
 oc kustomize deployment | oc delete -f -
+oc delete pods -n vulnerable-cicd --all
 oc start-build vulnerable-log4j -n vulnerable-cicd
 ```
 
