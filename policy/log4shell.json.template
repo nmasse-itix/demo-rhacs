@@ -1,7 +1,6 @@
 {
     "policies": [
         {
-            "id": "7f0ef11c-f9b1-4af1-9181-e24b1c27285c",
             "name": "Log4Shell",
             "description": "Alert on deployments with images containing the Log4Shell vulnerabilities (CVE-2021-44228 and CVE-2021-45046). There are flaws in the Java logging library Apache Log4j in versions from 2.0-beta9 to 2.15.0, excluding 2.12.2.",
             "rationale": "These vulnerabilities allows a remote attacker to execute code on the server if the system logs an attacker-controlled string value with the attacker's JNDI LDAP server lookup.",
@@ -24,7 +23,7 @@
                 "FAIL_BUILD_ENFORCEMENT"
             ],
             "notifiers": [
-                "27197fcf-5d2c-4fb6-a9bd-9e755f739944"
+                "{{ notifier_id }}"
             ],
             "lastUpdated": "2022-02-21T14:19:19.206939932Z",
             "SORTName": "",

@@ -89,4 +89,4 @@ spec:
         NAME=`skopeo inspect "docker://$(params.image)" --format '{{.Name}}' --creds token:$TOKEN`
         curl -s -k -L -H "Authorization: Bearer $ROX_API_TOKEN" "https://$ROX_CENTRAL_ENDPOINT/api/cli/download/roxctl-linux" --output /tmp/roxctl  > /dev/null
         chmod +x /tmp/roxctl
-        /tmp/roxctl image check --insecure-skip-tls-verify -e "$ROX_CENTRAL_ENDPOINT" --image "$NAME@$DIGEST"
+        /tmp/roxctl image check --insecure-skip-tls-verify -e "$ROX_CENTRAL_ENDPOINT" --image "$NAME@$DIGEST" --send-notifications
