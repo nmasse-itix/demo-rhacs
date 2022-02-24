@@ -270,8 +270,6 @@ Restart the CI/CD pipeline.
 
 In Jira, mark all tickets as closed.
 
-In central, delete the **Log4Shell** policy
-
 Edit **src/pom.xml** and change `<log4j.version>2.17.1</log4j.version>` to `<log4j.version>2.14.0</log4j.version>`.
 
 ```sh
