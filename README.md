@@ -34,6 +34,7 @@ On your workstation:
 * git
 * curl
 * oc
+* ansible
 
 On your OpenShift cluster(s):
 
@@ -71,6 +72,20 @@ oc new-project exploitkit-log4j
   * **Default Project**: your Jira project Key (all upper case)
 
 * Click **Test** and **Save**
+
+Save the Jira API key to the Ansible Vault:
+
+```sh
+ansible-vault create cleanup/ansible-vault.yaml
+```
+
+Seize the opportunity to also add your Central admin password and hostname.
+
+```yaml
+jira_password: foo
+central_admin_password: bar
+central_hostname: foo.bar
+```
 
 ### 2. Expose the registry
 
@@ -159,16 +174,16 @@ REGISTRY_TOKEN="$(oc get secrets -n vulnerable-cicd -o json | jq -r '.items[] | 
 podman login "$REGISTRY" --username sa --password "$REGISTRY_TOKEN"
 ```
 
+Run the cleanup script.
+
+```sh
+ansible-playbook cleanup/cleanup.yaml
+```
+
 Deploy the vulnerable app.
 
 ```sh
 oc kustomize deployment | oc apply -f -
-```
-
-Run the cleanup script.
-
-```
-ansible-playbook cleanup/cleanup.yaml
 ```
 
 ## Demo scenario
