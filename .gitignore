@@ -2,3 +2,8 @@ dockercfg
 *.bak
 log4shell.json
 
+# ansible vault
+cleanup/ansible-vault.yaml
+ansible.cfg
+.ansible-vault-password
+
