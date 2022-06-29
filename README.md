@@ -110,6 +110,12 @@ Deploy the CI/CD pipeline.
 oc apply -f cicd
 ```
 
+Let podman push remediated images.
+
+```sh
+oc adm policy add-role-to-user admin -z default -n vulnerable-cicd
+```
+
 Open the Central and:
 
 * Drill down to **Platform configuration** > **Integration**.
