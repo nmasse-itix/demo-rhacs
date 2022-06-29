@@ -164,6 +164,14 @@ EOF
 oc secrets link default external-registry --for=pull -n vulnerable-log4j
 ```
 
+### 5. Deploy the Exploit
+
+Deploy the JNDI Exploit Kit.
+
+```sh
+oc apply -f exploit/deployment
+```
+
 ## Preparation
 
 From your workstation, verify the connection to the registry:
